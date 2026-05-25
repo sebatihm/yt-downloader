@@ -4,17 +4,30 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Youtube Downloader</title>
+  <link rel="stylesheet" href="./styles/global.css">
 </head>
 <body>
-  <div>
-    <h1>Descargador de Youtube</h1>
-    <form action="/metadata" method="post">
-      <div>
-        <label for="url">Direccion URL del video</label>
-        <input type="text" name="url" id="url">
+  <div class="container">
+    <div class="video-form">
+      <h1>Youtube Video Downloader</h1>
+      <form action="/info" method="post">
+        <div class="input-label">
+          <label for="url">Video URL</label>
+          <input type="text" name="url" id="url" required placeholder="https://www.youtube.com/watch?v=ntG50eXbBtc">
+        </div>
+        <div class="button-container">
+          <button type="submit">Enviar</button>
+
+        </div>
+      </form>
+    </div>
+    {{#if error}}
+      <div class="error-message">
+        <p>
+          {{error.message}}
+        </p>
       </div>
-      <button type="submit">Enviar</button>
-    </form>
+    {{/if}}
   </div>
 </body>
 </html>

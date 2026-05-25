@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="./styles/global.css">
+  <title>Youtube Downloader - Video Info</title>
+</head>
+<body>
+  <h1>Video Data</h1>
+  {{#with video_data}}
+  <p>
+  
+      {{title}}
+      {{duration}}
+  </p>
+  <img src={{thumbnail_url}} alt="">
+  {{/with}}
+
+  <div>
+    <div>
+      {{#each audio_formats}}
+      <div id="audio-quality-{{id}}">
+        <p>format: {{ext}}</p>
+        <p>bitrate: {{bitrate}}</p>
+      </div>
+      <script>
+        const audio_quality_{{id}} = document.getElementById("audio-quality-{{id}}");
+        const audio_data_{{id}} = {{{json this}}};
+
+        audio_quality_{{id}}.addEventListener("click", () => {
+          const params = new URLSearchParams({
+            id:  audio_data_{{id}}.id,
+            original_url: "{{../url}}",
+            filename: "{{../video_data.title}}".replace(/[^\w\s-]/g, '_').trim() + '_{{quality}}.mp3'
+          });
+
+          const a = document.createElement('a');
+          a.href = `/download-audio?${params.toString()}`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+        });
+
+      </script>
+      {{/each}}
+    </div>
+
+    <div>
+      {{#each video_qualities}}
+        <div id="video-quality-{{id}}">
+          <p><strong>{{quality}}</strong></p>
+          <p>format: {{ext}}</p>
+          <p>bitrate: {{bitrate}}</p>
+        </div>
+
+      <script>
+        const videoQuality_{{id}} = document.getElementById("video-quality-{{id}}");
+        const qualityData_{{id}} = {{{json this}}};
+
+        videoQuality_{{id}}.addEventListener("click", () => {
+          const params = new URLSearchParams({
+            id: qualityData_{{id}}.id,
+            audio_id: qualityData_{{id}}.audio?.id ?? '',
+            original_url: "{{../url}}",
+            filename: "{{../video_data.title}}".replace(/[^\w\s-]/g, '_').trim() + '_{{quality}}.mp4'
+          });
+
+          const a = document.createElement('a');
+          a.href = `/download-video?${params.toString()}`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+        });
+
+      </script>
+      {{/each}}
+    </div>
+  </div>
+</body>
+</html>

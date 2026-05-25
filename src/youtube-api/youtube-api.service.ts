@@ -3,6 +3,11 @@ import { YtDlp } from 'ytdlp-nodejs';
 import { AudioFormat } from './dtos/audioFormat.dto';
 import { YtDlpFormat } from './dtos/ytlDlpFormat.dto';
 import { VideoFormat } from './dtos/videoFormat.dto';
+import { DownloadResource } from './dtos/downloadResource.dto';
+import * as fs from 'node:fs';
+import path from 'node:path';
+import * as os from 'os';
+import { DownloadAudioQueryParams } from './validation/download.audio.dto';
 
 @Injectable()
 export class YoutubeApiService {
@@ -51,9 +56,16 @@ export class YoutubeApiService {
       );
 
       return {
+        original_url: url,
         audio_formats: audioFormats,
-        bestAudioFormat: audioFormats[0],
+        best_audio_format: audioFormats[0],
         video_qualities: uniqueVideos,
+        video_data: {
+          thumbnail_url: info.thumbnail,
+          title: info.title,
+          channel: info.channel,
+          duration: info.duration_string,
+        },
       };
     } catch (error) {
       throw new HttpException(
@@ -62,6 +74,70 @@ export class YoutubeApiService {
         {
           cause: error,
         },
+      );
+    }
+  }
+
+  async downloadVideo(info: DownloadResource) {
+    try {
+      const format = info.audio?.id
+        ? `${info.id}+${info.audio.id}`
+        : `${info.id}`;
+
+      const url = decodeURIComponent(info.original_url)
+        .replace(/&#x3D;/g, '=')
+        .replace(/&amp;/g, '&');
+
+      const tmpFile = path.join(os.tmpdir(), `video_${Date.now()}.mp4`);
+
+      const ytdlp = new YtDlp();
+
+      await ytdlp
+        .download(url)
+        .addArgs('-f', format, '--merge-output-format', 'mp4', '-o', tmpFile)
+        .run();
+
+      return fs.createReadStream(tmpFile);
+    } catch (error) {
+      throw new HttpException(
+        'Error creating the download',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        { cause: error },
+      );
+    }
+  }
+
+  async downloadAudio(info: DownloadAudioQueryParams) {
+    try {
+      const url_sanitized = decodeURIComponent(info.original_url)
+        .replace(/&#x3D;/g, '=')
+        .replace(/&amp;/g, '&');
+
+      const tmpFile = path.join(os.tmpdir(), `audio_${Date.now()}.mp3`);
+
+      const ytdlp = new YtDlp();
+
+      await ytdlp
+        .download(url_sanitized)
+        .addArgs(
+          '-f',
+          `${info.id}`,
+          '-x',
+          '--audio-format',
+          'mp3',
+          '--audio-quality',
+          '0',
+          '-o',
+          tmpFile,
+        )
+        .run();
+
+      return fs.createReadStream(tmpFile);
+    } catch (error) {
+      throw new HttpException(
+        'Error creating the audio download',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        { cause: error },
       );
     }
   }
