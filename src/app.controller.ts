@@ -5,12 +5,13 @@ import {
   Post,
   Query,
   Render,
+  Req,
   Res,
   UseFilters,
 } from '@nestjs/common';
 import { AppService } from './app.service';
 import { DownloadResource } from './youtube-api/dtos/downloadResource.dto';
-import type { Response } from 'express';
+import type { Request, Response } from 'express';
 import * as fs from 'node:fs';
 import { YoutubeInfoValidation } from './youtube-api/validation/youtube-info.dto';
 import { DownloadVideoQueryParams } from './youtube-api/validation/download-video.dto';
@@ -23,9 +24,12 @@ export class AppController {
 
   @Get()
   @Render('index')
-  getHello(@Query('error') error: string) {
+  getHello(@Req() req: Request) {
+    const error = (req.session['error'] as string) ?? null;
+    delete req.session['error'];
+
     return {
-      error: error ? { message: error } : null,
+      error,
     };
   }
 
