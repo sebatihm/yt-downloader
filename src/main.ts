@@ -15,6 +15,9 @@ async function bootstrap() {
   hbs.registerHelper('json', function (context) {
     return JSON.stringify(context);
   });
+  hbs.registerHelper('upper', function (text) {
+    return String(text).toUpperCase();
+  });
 
   app.setBaseViewsDir(join(__dirname, '..', 'views'));
   app.useGlobalPipes(

@@ -100,7 +100,7 @@ export class YoutubeApiService {
       return fs.createReadStream(tmpFile);
     } catch (error) {
       throw new HttpException(
-        'Error creating the download',
+        'Error generating the download',
         HttpStatus.INTERNAL_SERVER_ERROR,
         { cause: error },
       );

@@ -50,7 +50,7 @@ button {
   border-style: none;
 }
 
-.button-container > button {
+button {
   justify-self: center;
   background-color: #a10000;
   color: #ffffff;
@@ -68,7 +68,7 @@ button {
   padding: 2% 0%;
 }
 
-.button-container > button:hover {
+button:hover {
   background-color: #b90000;
   color: #ffffff;
   cursor: pointer;
@@ -88,4 +88,11 @@ button {
   background-color: #79000076;
   padding: 1.25rem;
   border-radius: 1em;
+}
+
+@media (width <= 850px) {
+  .video-form {
+    width: 80%;
+    
+  }
 }

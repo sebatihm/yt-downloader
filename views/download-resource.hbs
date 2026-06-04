@@ -4,23 +4,28 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="./styles/global.css">
+  <link rel="stylesheet" href="./styles/download-window.css">
   <title>Youtube Downloader - Video Info</title>
 </head>
 <body>
-  <h1>Video Data</h1>
-  {{#with video_data}}
-  <p>
-  
-      {{title}}
-      {{duration}}
-  </p>
-  <img src={{thumbnail_url}} alt="">
-  {{/with}}
+  <main class="main-layout">
+    <h1>Video Information</h1>
+    {{#with video_data}}
+      <div class="video-card">
+        <img src="{{thumbnail_url}}" alt="https://storage.homestuck.com/story/homestuck/media/images/panels/act-1/00001.gif" class="video-card-image">
+        <div class="video-card-body">
+          <h1>{{title}}</h1>
+          <p><strong>Duration:</strong> {{duration}}</p>
+        </div> 
+      </div>
+    {{/with}}
 
-  <div>
-    <div>
+  <h2>Available Formats</h2>
+  <div class="video-available-formats">
+    <div class="formats">
+      <h3>Audio Formats</h3>
       {{#each audio_formats}}
-      <div id="audio-quality-{{id}}">
+      <div class="audio-format" id="audio-quality-{{id}}">
         <p>format: {{ext}}</p>
         <p>bitrate: {{bitrate}}</p>
       </div>
@@ -28,29 +33,51 @@
         const audio_quality_{{id}} = document.getElementById("audio-quality-{{id}}");
         const audio_data_{{id}} = {{{json this}}};
 
-        audio_quality_{{id}}.addEventListener("click", () => {
-          const params = new URLSearchParams({
-            id:  audio_data_{{id}}.id,
-            original_url: "{{../url}}",
-            filename: "{{../video_data.title}}".replace(/[^\w\s-]/g, '_').trim() + '_{{quality}}.mp3'
-          });
+        audio_quality_{{id}}.addEventListener("click", async () => {
+          try {
+            showLoading();
 
-          const a = document.createElement('a');
-          a.href = `/download-audio?${params.toString()}`;
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
+            const params = new URLSearchParams({
+              id: audio_data_{{id}}.id,
+              original_url: "{{../url}}",
+              filename: "{{../video_data.title}}".replace(/[^\w\s-]/g, '_').trim() + '_{{quality}}.mp3'
+            });
+
+            const response = await fetch(
+              `/download-audio?${params.toString()}`
+            );
+
+            if (!response.ok) {
+              throw new Error('Error al descargar');
+            }
+
+            const blob = await response.blob();
+
+            const url = URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = "{{../video_data.title}}.mp3";
+            a.click();
+
+            URL.revokeObjectURL(url);
+
+          } catch (error) {
+            console.error(error);
+          } finally {
+            hideLoading();
+          }
         });
 
       </script>
       {{/each}}
     </div>
 
-    <div>
+    <div class="formats">
+      <h3>Video Formats</h3>
       {{#each video_qualities}}
-        <div id="video-quality-{{id}}">
-          <p><strong>{{quality}}</strong></p>
-          <p>format: {{ext}}</p>
+        <div class="video-format" id="video-quality-{{id}}">
+          <p><strong>{{upper ext}} - {{quality}}</strong></p>
           <p>bitrate: {{bitrate}}</p>
         </div>
 
@@ -58,24 +85,70 @@
         const videoQuality_{{id}} = document.getElementById("video-quality-{{id}}");
         const qualityData_{{id}} = {{{json this}}};
 
-        videoQuality_{{id}}.addEventListener("click", () => {
-          const params = new URLSearchParams({
-            id: qualityData_{{id}}.id,
-            audio_id: qualityData_{{id}}.audio?.id ?? '',
-            original_url: "{{../url}}",
-            filename: "{{../video_data.title}}".replace(/[^\w\s-]/g, '_').trim() + '_{{quality}}.mp4'
-          });
+    videoQuality_{{id}}.addEventListener("click", async () => {
+      try {
+        showLoading();
 
-          const a = document.createElement('a');
-          a.href = `/download-video?${params.toString()}`;
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
+        const params = new URLSearchParams({
+          id: qualityData_{{id}}.id,
+          audio_id: qualityData_{{id}}.audio?.id ?? '',
+          original_url: "{{../url}}",
+          filename: "{{../video_data.title}}".replace(/[^\w\s-]/g, '_').trim() + '_{{quality}}.mp4'
         });
 
+        const response = await fetch(
+          `/download-video?${params.toString()}`
+        );
+
+        if (!response.ok) {
+          throw new Error('Error al descargar');
+        }
+
+        hideLoading();
+
+        const blob = await response.blob();
+
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = "{{../video_data.title}}_{{quality}}.mp4";
+        a.click();
+
+        URL.revokeObjectURL(url);
+
+      } catch (error) {
+        console.error(error);
+        hideLoading();
+      }
+    });
+    
       </script>
       {{/each}}
     </div>
   </div>
+  
+  <div class="footer-btn">
+    <button onclick="window.location.href='/'">Return</button>
+  </div>
+
+  <div id="loading-overlay" class="loading-overlay hidden">
+    <div class="spinner"></div>
+    <p>Preparando descarga...</p>
+  </div>
+
+    <script>
+      const loadingOverlay = document.getElementById("loading-overlay");
+
+      function showLoading() {
+        loadingOverlay.classList.remove("hidden");
+      }
+
+      function hideLoading() {
+        loadingOverlay.classList.add("hidden");
+      }
+    </script>
+  </main>
+  
 </body>
 </html>
