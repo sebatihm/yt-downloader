@@ -14,6 +14,7 @@ export class AppService {
     try {
       return await this.youtubeApi.getInfo(url);
     } catch (error) {
+      if (error instanceof HttpException) throw error;
       throw new HttpException(
         'Error getting the metadata',
         HttpStatus.INTERNAL_SERVER_ERROR,
