@@ -1,4 +1,0 @@
-allowBuilds:
-  '@nestjs/core': false
-  unrs-resolver: false
-  ytdlp-nodejs: true
